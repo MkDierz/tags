@@ -15,7 +15,16 @@ const user = {
   }).then((response) => response.data),
 };
 
+const post = {
+  getPosts: (id, Authorization) => axios.get(`${baseUrl}/post?id=${id.toString()}`, {
+    headers: {
+      Authorization,
+    },
+  }).then((response) => response.data),
+};
+
 module.exports = {
   auth,
   user,
+  post,
 };
