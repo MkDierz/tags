@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
 
 async function create(req, res, next) {
   const { user, body } = req;
-  const data = Object;
+  const data = {};
 
   try {
     data.created = await prisma.tag.create({ data: { ...body, userId: user.id } });
@@ -31,7 +31,7 @@ async function read(req, res, next) {
   const {
     query, id, userId, name,
   } = req.query;
-  const data = Object;
+  const data = {};
   try {
     data.tag = await prisma.tag.findMany({
       ...(query && { where: { name: { search: query } } }),
@@ -53,7 +53,7 @@ async function readById(req, res, next) {
   const where = {
     ...(idNumeric ? { id: idNumeric } : (idAlphanumeric && { name: identifier })),
   };
-  const data = Object;
+  const data = {};
   try {
     data.tag = await prisma.tag.findUnique({
       where,
@@ -79,7 +79,7 @@ async function updateById(req, res, next) {
     ...(idNumeric ? { id: idNumeric } : (idAlphanumeric && { name: identifier })),
   };
 
-  const data = Object;
+  const data = {};
   try {
     data.isOwned = await prisma.tag.findFirst({ where: { ...where, userId: user.id } });
     if (!data.isOwned) {
@@ -105,7 +105,7 @@ async function deleteById(req, res, next) {
     ...(idNumeric ? { id: idNumeric } : (idAlphanumeric && { name: identifier })),
   };
 
-  const data = Object;
+  const data = {};
   try {
     data.isOwned = await prisma.tag.findFirst({ where: { ...where, userId: user.id } });
     if (!data.isOwned) {
@@ -123,7 +123,7 @@ async function deleteById(req, res, next) {
 async function createPostTag(req, res, next) {
   const { user, body, params } = req;
   const { id: postId } = params;
-  const data = Object;
+  const data = {};
   try {
     body.tags = await asyncLooper(body.tags, async (tag) => {
       const idNumeric = parseInt(tag, 10);
@@ -165,7 +165,7 @@ async function createPostTag(req, res, next) {
 async function deletePostTag(req, res, next) {
   const { user, body, params } = req;
   const { id: postId } = params;
-  const data = Object;
+  const data = {};
   try {
     if (!body.post) {
       await prisma.tagPost.deleteMany({ where: { postId } });
@@ -206,7 +206,7 @@ async function deletePostTag(req, res, next) {
 async function updatePostTag(req, res, next) {
   const { user, body, params } = req;
   const { id: postId } = params;
-  const data = Object;
+  const data = {};
   try {
     body.tags = await asyncLooper(body.tags, async (tag) => {
       const idNumeric = parseInt(tag, 10);
@@ -250,7 +250,7 @@ async function updatePostTag(req, res, next) {
 async function readPostTag(req, res, next) {
   const { params } = req;
   const { id: postId } = params;
-  const data = Object;
+  const data = {};
   try {
     if (!Array.isArray(postId)) {
       data.tags = await prisma.tagPost.findMany({
