@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { httpError } = require('../config');
 const errorHandler = require('../utils/errorHandler');
-const { user: userService } = require('../utils/services');
+const { user: userService, post } = require('../utils/services');
 const {
   replaceKeyValueWithMatchingObject,
   renameKey,
@@ -10,6 +10,7 @@ const {
   asyncLooper,
   convertArray,
   extractPostsTags,
+  extractUniqueKey,
 } = require('../utils/dro');
 // const { clean, filterObject } = require('../utils/dro');
 
@@ -57,6 +58,12 @@ async function readById(req, res, next) {
   try {
     data.tag = await prisma.tag.findUnique({
       where,
+      include: {
+        TagPost: true,
+        _count: {
+          select: { TagPost: true },
+        },
+      },
     });
   } catch (e) {
     return errorHandler.prismaWrapper(e, next);
@@ -65,6 +72,13 @@ async function readById(req, res, next) {
     data.users = await userService.getUsers(data.tag.userId, req.headers.authorization);
     data.tag = renameKey(data.tag, 'userId', 'creator');
     data.tag = replaceKeyValueWithMatchingObject(data.tag, 'creator', data.users, 'id');
+    if (data.tag.TagPost) {
+      data.tag.TagPost = await post
+        .getPosts(extractUniqueKey('postId', data.tag.TagPost), req.headers.authorization);
+    }
+    data.tag = renameKey(data.tag, 'TagPost', 'posts');
+    data.tag = renameKey(data.tag, '_count', 'postCount');
+    data.tag.postCount = data.tag.postCount.TagPost;
   }
   return res.send(data.tag);
 }
