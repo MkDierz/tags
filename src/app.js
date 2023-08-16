@@ -1,7 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const { httpError } = require('../config');
 const errorHandler = require('../utils/errorHandler');
-const { user: userService, post } = require('../utils/services');
 const {
   replaceKeyValueWithMatchingObject,
   renameKey,
@@ -49,6 +48,7 @@ async function read(req, res, next) {
 
 async function readById(req, res, next) {
   const { identifier } = req.params;
+  const { userService, postService } = req.services;
   const idNumeric = parseInt(identifier, 10);
   const idAlphanumeric = isAlphanumeric(identifier);
   const where = {
@@ -69,12 +69,11 @@ async function readById(req, res, next) {
     return errorHandler.prismaWrapper(e, next);
   }
   if (data.tag) {
-    data.users = await userService.getUsers(data.tag.userId, req.headers.authorization);
+    data.users = await userService.getUsers(data.tag.userId);
     data.tag = renameKey(data.tag, 'userId', 'creator');
     data.tag = replaceKeyValueWithMatchingObject(data.tag, 'creator', data.users, 'id');
     if (data.tag.TagPost) {
-      data.tag.TagPost = await post
-        .getPosts(extractUniqueKey('postId', data.tag.TagPost), req.headers.authorization);
+      data.tag.TagPost = await postService.getPosts(extractUniqueKey('postId', data.tag.TagPost));
     }
     data.tag = renameKey(data.tag, 'TagPost', 'posts');
     data.tag = renameKey(data.tag, '_count', 'postCount');
@@ -139,6 +138,7 @@ async function createPostTag(req, res, next) {
   const { id: postId } = params;
   const data = {};
   try {
+    console.log(body);
     body.tags = await asyncLooper(body.tags, async (tag) => {
       const idNumeric = parseInt(tag, 10);
       const idAlphanumeric = isAlphanumeric(tag);
