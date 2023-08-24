@@ -6,7 +6,7 @@ class PostService extends ApiService {
   }
 
   async getPosts(id) {
-    return this.get(`/?id${id.toString()}`);
+    return this.get(`/?id=${id.toString()}`);
   }
 
   async getPostById(id) {
